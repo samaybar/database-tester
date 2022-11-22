@@ -18,7 +18,9 @@ The output of the `deploy` will include the URL of the endpoint for the function
 By default, the Lambda function will be deployed to `us-east-1`.
 
 You can alternatively deploy the function to any other AWS region with, eg:
+
 `make reg=us-west-2 bucket`
+
 `make reg=us-west-2 deploy`
 
 ## Usage
