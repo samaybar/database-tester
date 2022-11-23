@@ -21,20 +21,31 @@ async function getData(databaseUrl, type, sql, time) {
 
   let host = 'NA';
   try {
-    //warm cache
+    //warm db & cache
+    const timePreColdStart = Date.now();
     const out1 = await db.raw(query);
-    output = out1.rows;
+    const timePostColdStart = Date.now();
+    const coldStartTime = timePostColdStart - timePreColdStart;
+    if (type === "postgres"){
+      output = out1.rows;
+    } else if (type === "mysql"){
+      output = out1[0];
+    }
     host = db.client.config.connection.host;
     startTime = Date.now();
     const endTime = startTime + time;
     let timer = startTime;
     while (timer < endTime){
+        timer = Date.now();
         const out = await db.raw(query);
         if(counter === 0){
-          output = out.rows;
+          if (type === "postgres"){
+            output = out.rows;
+          } else if (type === "mysql"){
+            output = out[0];
+          }
         }
         counter++;
-        timer = Date.now();
       } 
   } catch (e) {
     console.log(e);
@@ -42,12 +53,12 @@ async function getData(databaseUrl, type, sql, time) {
     if (host ==="NA"){
       message = "no database provided";
     }
-    output = {"message":"something went wrong","error":e};
+    output = {"message":message,"error":e};
   }
   const finishTime = Date.now();
   totalTime = finishTime - startTime;
   const avgResponseTime = Math.round(totalTime*10/counter)/10;
-  const payload = {output: output, requestsMade: counter, host: host, totalTime: totalTime, avgResponseTime: avgResponseTime};
+  const payload = {output: output, requestsMade: counter, host: host, totalTime: totalTime, avgResponseTime: avgResponseTime, firstResponeTime: coldStartTime};
   return payload;
 } 
 
@@ -63,7 +74,6 @@ exports.handler = async (event) => {
 
 
     const responseBody = { db1, db2, time, sql }
-    // const responseBody = postData;
     const response = {
         statusCode: 200,
         body: JSON.stringify(responseBody)
