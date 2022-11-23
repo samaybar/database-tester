@@ -18,6 +18,7 @@ async function getData(databaseUrl, type, sql, time) {
   let counter = 0;
   let totalTime = 0;
   let startTime;
+  let coldStartTime;
 
   let host = 'NA';
   try {
@@ -25,7 +26,7 @@ async function getData(databaseUrl, type, sql, time) {
     const timePreColdStart = Date.now();
     const out1 = await db.raw(query);
     const timePostColdStart = Date.now();
-    const coldStartTime = timePostColdStart - timePreColdStart;
+    coldStartTime = timePostColdStart - timePreColdStart;
     if (type === "postgres"){
       output = out1.rows;
     } else if (type === "mysql"){
@@ -58,7 +59,7 @@ async function getData(databaseUrl, type, sql, time) {
   const finishTime = Date.now();
   totalTime = finishTime - startTime;
   const avgResponseTime = Math.round(totalTime*10/counter)/10;
-  const payload = {output: output, requestsMade: counter, host: host, totalTime: totalTime, avgResponseTime: avgResponseTime, firstResponeTime: coldStartTime};
+  const payload = { host: host, output: output, requestsMade: counter, totalTime: totalTime, avgResponseTime: avgResponseTime, firstResponeTime: coldStartTime};
   return payload;
 } 
 
