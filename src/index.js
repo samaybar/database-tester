@@ -66,16 +66,22 @@ async function getData(databaseUrl, type, sql, time) {
 exports.handler = async (event) => {
     //get payload from post
     const postData = JSON.parse(event.body);
-    const { databaseUrl1, databaseUrl2, time, sql, type } = postData;
+    // const { databaseUrl1, databaseUrl2, time, sql, type } = postData;
+    const { databaseUrl, time, sql, type } = postData;
     const loopTime = 1000 * Math.min(time,20);
-    // const [db1, db2] = await Promise.all([
-    //   getData(databaseUrl1, type, sql, loopTime),
-    //   getData(databaseUrl2, type, sql, loopTime)
-    // ])
-    const db1 = await getData(databaseUrl1, type, sql, loopTime);
-    const db2 = await getData(databaseUrl2, type, sql, loopTime);
+    let databaseRequests = [];
+    if(typeof databaseUrl === "string"){
+      databaseRequests = [getData(databaseUrl, type, sql, loopTime)];
+    } else {
+      for (let i = 0; i< databaseUrl.length; i++){
+        databaseRequests.push(getData(databaseUrl[i], type, sql, loopTime))
+      }
+    }
 
-    const responseBody = { db1, db2, time, sql }
+
+    const db = await Promise.all(databaseRequests);
+  
+    const responseBody = { db, time, sql }
     const response = {
         statusCode: 200,
         body: JSON.stringify(responseBody)
