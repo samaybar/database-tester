@@ -1,5 +1,5 @@
 "use strict";
-
+const knex = require("knex");
 
 async function getData(databaseUrl, type, sql, time) {
   //select driver to use, default to postgres
@@ -7,7 +7,7 @@ async function getData(databaseUrl, type, sql, time) {
   if (type == "mysql"){
     client = "mysql2"
   }
-  const db = require("knex")({
+  const db = knex({
     client: client,
     connection: databaseUrl
   });
@@ -68,11 +68,12 @@ exports.handler = async (event) => {
     const postData = JSON.parse(event.body);
     const { databaseUrl1, databaseUrl2, time, sql, type } = postData;
     const loopTime = 1000 * Math.min(time,20);
-    const [db1, db2] = await Promise.all([
-      getData(databaseUrl1, type, sql, loopTime),
-      getData(databaseUrl2, type, sql, loopTime)
-    ])
-
+    // const [db1, db2] = await Promise.all([
+    //   getData(databaseUrl1, type, sql, loopTime),
+    //   getData(databaseUrl2, type, sql, loopTime)
+    // ])
+    const db1 = await getData(databaseUrl1, type, sql, loopTime);
+    const db2 = await getData(databaseUrl2, type, sql, loopTime);
 
     const responseBody = { db1, db2, time, sql }
     const response = {
